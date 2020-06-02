@@ -9,6 +9,4 @@ export async function seed(knex: Knex) {
         {title: 'residuos organicos', image: 'organicos.svg'},
         {title: 'oleo de cozinha', image: 'oleo.svg'},
     ]);
-
-
 }
