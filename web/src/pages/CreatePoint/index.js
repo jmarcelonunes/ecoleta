@@ -12,9 +12,15 @@ export default function CreatePoint () {
     const [ufs, setUfs] = useState([]);
     const [selectedUf, setSelectedUf] = useState('0');
     const [cities, setCities] = useState([]);
-    const [selectedCity, setSelectedCity] = useState('0');
-    const [initalPosition, setInitialPosition] = useState([0,0])
+    const [selectedCity, setSelectedCity] = useState('');
+    const [initalPosition, setInitialPosition] = useState([0,0]);
     const [selectedPosition, setSelectedPosition] = useState([0,0]);
+    const [selectedItems, setSelectedItems] = useState([]);
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        whatsapp: ''
+    });
 
 
     useEffect(() => {
@@ -76,6 +82,49 @@ export default function CreatePoint () {
         setSelectedPosition([event.target._latlng.lat, event.target._latlng.lng])
     }
 
+    function handleInputChange(event){
+        const { name, value } = event.target;
+        setFormData({...formData, [name]: value });
+    }
+
+    function handleSelectedItem(id){
+        if(selectedItems.includes(id)){
+            const filteredItems = selectedItems.filter(item => item !== id)
+            setSelectedItems(filteredItems)
+        }
+        else{
+            setSelectedItems([...selectedItems, id])
+        }
+    }
+
+    async function handleSubmit(event) {
+        event.preventDefault();
+        const { name, email, whatsapp } = formData;
+        const uf = selectedUf;
+        const city = selectedCity;
+        const [latitude, longitude] = selectedPosition;
+        const items = selectedItems;
+        
+        const data = {
+            name,
+            email,
+            whatsapp,
+            uf,
+            city,
+            latitude,
+            longitude,
+            items
+
+        }
+
+        console.log(data)
+
+        await api.post('points', data)
+
+        alert('Ponto Criado')
+
+    }
+
     return (
         <div id="page-create-point">
             <header>
@@ -85,7 +134,7 @@ export default function CreatePoint () {
                     Voltar
                 </Link>
             </header>
-            <form action="">
+            <form onSubmit={handleSubmit}>
                 <h1>Cadastro do <br/> ponto de coleta</h1>
 
                 <fieldset>
@@ -99,6 +148,7 @@ export default function CreatePoint () {
                             type="text"
                             name="name"
                             id="name"
+                            onChange={handleInputChange}
                         />
                     </div>
 
@@ -109,6 +159,7 @@ export default function CreatePoint () {
                                 type="email"
                                 name="email"
                                 id="email"
+                                onChange={handleInputChange}
                             />
                         </div>
                         <div className="field">
@@ -117,6 +168,7 @@ export default function CreatePoint () {
                                 type="text"
                                 name="whatsapp"
                                 id="whatsapp"
+                                onChange={handleInputChange}
                             />
                         </div>
                     </div>
@@ -139,9 +191,11 @@ export default function CreatePoint () {
                     <div className="field-group">
                         <div className="field">
                             <label htmlFor="uf">Estado</label>
-                            <select name="uf" 
-                                    id="uf" value={selectedUf}
-                                    onChange={event => handleSelectedUf(event)}
+                            <select 
+                                name="uf" 
+                                id="uf"
+                                value={selectedUf}
+                                onChange={event => handleSelectedUf(event)}
                             >
                                 {ufs.map((uf) => (
                                     <option key={uf.id} value={uf.sigla}>{uf.sigla}</option>
@@ -150,8 +204,13 @@ export default function CreatePoint () {
                         </div>
                         <div className="field">
                             <label htmlFor="city">Cidade</label>
-                            <select name="city" id="city" onChange={event => handleSelectedCity(event)}>
-                                {cities.map(city => (
+                            <select 
+                                name="city" 
+                                id="city"
+                                value={selectedCity} 
+                                onChange={event => handleSelectedCity(event)}
+                            >
+                                {cities.map((city) => (
                                     <option key={city.id} value={city.nome}>{city.nome}</option>
                                 ))}
                             </select>
@@ -168,7 +227,7 @@ export default function CreatePoint () {
 
                     <ul className="items-grid">
                         {items.map(item => (
-                            <li key={item.id}>
+                            <li key={item.id} onClick={() => handleSelectedItem(item.id)} className={selectedItems.includes(item.id) ? 'selected' : '' }>
                                 <img src={item.image_url} alt={item.title}/>
                                 <span>{item.title}</span>
                             </li>
