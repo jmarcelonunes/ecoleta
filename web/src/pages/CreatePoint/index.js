@@ -13,12 +13,31 @@ export default function CreatePoint () {
     const [selectedUf, setSelectedUf] = useState('0');
     const [cities, setCities] = useState([]);
     const [selectedCity, setSelectedCity] = useState('0');
+    const [initalPosition, setInitialPosition] = useState([0,0])
+    const [selectedPosition, setSelectedPosition] = useState([0,0]);
 
 
     useEffect(() => {
         api.get('/items').then(response => {
             setItems(response.data);
         });      
+    }, []);
+
+    useEffect(() => {
+        navigator.geolocation.getCurrentPosition(
+            position => {
+              const { latitude, longitude } = position.coords;
+              setInitialPosition([latitude, longitude]);
+            },
+            err => {
+              console.log(err);
+              setInitialPosition([-15.7976077, -47.8830586]);
+            },
+            {
+              timeout: 10000
+            }
+          );
+          
     }, []);
 
     useEffect(() => {
@@ -47,6 +66,14 @@ export default function CreatePoint () {
     function handleSelectedCity(event){
         const city = event.target.value
         setSelectedCity(city)
+    }
+
+    function handleMapClick(event){
+        setSelectedPosition([event.latlng.lat, event.latlng.lng])
+    }
+
+    function handleMarkerMove(event){
+        setSelectedPosition([event.target._latlng.lat, event.target._latlng.lng])
     }
 
     return (
@@ -101,12 +128,12 @@ export default function CreatePoint () {
                         <span>Selecione o endereço no mapa</span>
                     </legend>
 
-                    <Map center={[-15.8040289, -47.8820394]} zoom={12}>
+                    <Map center={initalPosition} dragging={true} zoom={12} onClick={handleMapClick} >
                         <TileLayer 
                         attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         />
-                        <Marker position={[-15.8040289, -47.8820394]} />
+                        <Marker  onDragend={handleMarkerMove} draggable={true} position={selectedPosition} />
                     </Map>
 
                     <div className="field-group">
